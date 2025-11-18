@@ -12,7 +12,8 @@ Model name is converted to lowercase for the collection name:
 """
 
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, Literal
+from datetime import datetime
 
 # Example schemas (replace with your own):
 
@@ -38,11 +39,16 @@ class Product(BaseModel):
     category: str = Field(..., description="Product category")
     in_stock: bool = Field(True, description="Whether product is in stock")
 
-# Add your own schemas here:
-# --------------------------------------------------
-
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+# Trading signal schema
+class Signal(BaseModel):
+    """Trading signals for both crypto and forex.
+    Collection name: "signal"
+    """
+    asset_type: Literal["crypto", "forex"]
+    symbol: str = Field(..., description="Symbol e.g., BTCUSDT or EURUSD")
+    timeframe: str = Field(..., description="Timeframe used for analysis, e.g., 1h, 4h, 1d")
+    signal_type: Literal["buy", "sell", "neutral"]
+    confidence: float = Field(..., ge=0, le=1, description="Confidence score 0-1")
+    reason: str = Field(..., description="Human-readable explanation of the signal")
+    price: float = Field(..., ge=0, description="Last price when the signal was generated")
+    generated_at: datetime = Field(default_factory=datetime.utcnow)
